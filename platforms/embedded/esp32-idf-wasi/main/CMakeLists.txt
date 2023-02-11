@@ -1,6 +1,6 @@
 file(GLOB_RECURSE M3_SOURCES "wasm3/*.c")
 
-set(APP_SOURCES "main.cpp" "m3_api_esp_wasi.c")
+set(APP_SOURCES "main.cpp" "m3_api_esp_wasi.c" "m3_http.cpp" "wifi.cpp")
 
 idf_component_register(SRCS ${APP_SOURCES} ${M3_SOURCES}
                     INCLUDE_DIRS "wasm3")

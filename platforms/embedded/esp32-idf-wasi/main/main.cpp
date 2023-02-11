@@ -15,7 +15,16 @@
 #include "m3_env.h"
 
 #include "m3_api_esp_wasi.h"
-#include "wasi_test.wasm.h"
+#include "m3_http.h"
+// #include "wasi_test.wasm.h"
+// #include "test_wasm.h"
+#include "http_wasm.h"
+
+//#define CONFIG_EXAMPLE_CONNECT_WIFI 1
+//#define EXAMPLE_NETIF_DESC_STA "example_netif_sta"
+//#include "example_common_private.h"
+
+#include "wifi.h"
 
 #define FATAL(msg, ...) { printf("Fatal: " msg "\n", ##__VA_ARGS__); return; }
 
@@ -23,8 +32,8 @@ static void run_wasm(void)
 {
     M3Result result = m3Err_none;
 
-    uint8_t* wasm = (uint8_t*)wasi_test_wasm;
-    uint32_t fsize = wasi_test_wasm_len;
+    uint8_t* wasm = (uint8_t*)http_wasm;
+    uint32_t fsize = http_wasm_len;
 
     printf("Loading WebAssembly...\n");
     IM3Environment env = m3_NewEnvironment ();
@@ -42,6 +51,9 @@ static void run_wasm(void)
 
     result = m3_LinkEspWASI (runtime->modules);
     if (result) FATAL("m3_LinkEspWASI: %s", result);
+    
+    result = m3_LinkHttp (runtime->modules);
+    if (result) FATAL("m3_LinkHttp: %s", result);
 
     IM3Function f;
     result = m3_FindFunction (&f, runtime, "_start");
@@ -64,13 +76,18 @@ extern "C" void app_main(void)
 {
     printf("\nWasm3 v" M3_VERSION " on " CONFIG_IDF_TARGET ", build " __DATE__ " " __TIME__ "\n");
 
+    // example_wifi_connect();
+
+    WF wifi;
+    wifi.sta_connect("ubnt", "2065886782", 1);
+
     clock_t start = clock();
     run_wasm();
     clock_t end = clock();
 
     printf("Elapsed: %ld ms\n", (end - start)*1000 / CLOCKS_PER_SEC);
 
-    sleep(3);
+    sleep(3000);
     printf("Restarting...\n\n\n");
     esp_restart();
 }
